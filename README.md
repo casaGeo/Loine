@@ -63,6 +63,8 @@ After the last country, build indexes and statistics:
 CALL pgr.loine_finalize();
 ```
 
+The software can also be installed from this repository: run `install/loine_install.sql` and then `install/loine_functions.sql` instead of `loine-<version>.sql`. The country data is only available from the website.
+
 Step-by-step instructions for Windows, Linux and macOS, for pgAdmin and DataGrip, and for updates are available on the [Loine website](https://www.casageo.de/loine.html).
 
 ## Usage
