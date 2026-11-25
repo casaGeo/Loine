@@ -2,7 +2,7 @@
 
 **Routing, isolines and cost matrices directly in your PostgreSQL database.**
 
-📖 Full documentation: [www.casageo.de/loine.html](https://www.casageo.de/loine.html)
+Website: [www.casageo.de/loine.html](https://www.casageo.de/loine.html) – data preparation, support and commercial licenses
 
 Loine delivers a ready-to-use road network for PostgreSQL/PostGIS together with a set of SQL functions for routing and reachability analysis. Install it in your own database and run routes, isolines, reachable grid cells and cost matrices with plain SQL – no external routing service, no API limits, no data leaving your infrastructure.
 
@@ -169,18 +169,10 @@ All objects are created in the schema `pgr`, except the administration of comple
 
 ## Documentation
 
-This README gives a short overview. The full documentation is available on our website:
-
-**https://www.casageo.de/loine.html**
-
-It covers:
-
-- Downloads of the software and the country data
-- Installation and update on Windows, Linux and macOS, with psql, pgAdmin and DataGrip
-- All functions with their parameters and return values
-- Modes of transport and the road categories they use
-- Application examples for isolines, grid analyses and cost matrices
-- Available countries and data sources
+- This README: installation, functions and parameters
+- [docs/tables.md](docs/tables.md): structure of the tables `pgr.edges` and `pgr.grids` and requirements for your own networks
+- `functions/`: one file per function; the comments in the files describe what each function does
+- [Loine website](https://www.casageo.de/loine.html): data preparation, support and commercial licenses
 
 ## Contributing to Loine
 
