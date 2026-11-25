@@ -12,12 +12,13 @@ $function$
 DECLARE
     v_srid INTEGER;
 BEGIN
-    IF TO_REGCLASS('pgr.loine_installed') IS NOT NULL
-        AND EXISTS (SELECT 1
-                    FROM information_schema.columns
-                    WHERE table_schema = 'pgr'
-                      AND table_name = 'loine_installed'
-                      AND column_name = 'srid') THEN
+    -- The schema name appears only as pgr. so that the function also works in a delivery schema pgr_YYYYMMDD
+    -- (the installer and the switch procedure replace pgr. with the schema name).
+    IF EXISTS (SELECT 1
+               FROM pg_attribute
+               WHERE attrelid = TO_REGCLASS('pgr.loine_installed')
+                 AND attname = 'srid'
+                 AND NOT attisdropped) THEN
         EXECUTE 'SELECT MIN(srid) FROM pgr.loine_installed' INTO v_srid;
     END IF;
     RETURN COALESCE(v_srid, 3035);

@@ -1,4 +1,4 @@
--- Loine 3.0.0 (2026-11-02) – routing functions
+-- Loine 3.0.3 (2026-11-25) – routing functions
 --
 -- SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-casaGeo-Commercial
 -- Copyright © 2026 casaGeo Data + Services GmbH – https://www.casageo.de/loine.html – info@casageo.de
@@ -114,6 +114,7 @@ END
 $function$;
 
 
+
 -- ==== functions/_candidate_edges.sql ================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._candidate_edges(
@@ -179,6 +180,7 @@ BEGIN
           AND e.source_id IS NOT NULL; -- only street segments, no turn edges (length 0)
 END;
 $function$;
+
 
 
 -- ==== functions/_candidate_edges_array.sql ==========================================================================
@@ -278,6 +280,7 @@ BEGIN
     RAISE NOTICE 'Execution Time for _candidate_edges_array: %', v_elapsed_time;
 END;
 $function$;
+
 
 
 -- ==== functions/_candidate_edges_cluster.sql ========================================================================
@@ -383,6 +386,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/_candidate_edges_hull_costmatrix.sql ================================================================
@@ -562,6 +566,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_candidate_edges_isolines.sql =======================================================================
 
 CREATE OR REPLACE FUNCTION pgr._candidate_edges_isolines(
@@ -661,6 +666,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/_candidate_edges_radius_costmatrix.sql ==============================================================
@@ -798,6 +804,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_candidate_grids_isolines.sql =======================================================================
 
 CREATE OR REPLACE FUNCTION pgr._candidate_grids_isolines(
@@ -913,6 +920,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_catchment_isolines.sql =============================================================================
 
 CREATE OR REPLACE FUNCTION pgr._catchment_isolines(
@@ -975,6 +983,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/_catchment_isolines_static.sql ======================================================================
@@ -1041,6 +1050,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_check_input.sql ====================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._check_input(
@@ -1096,6 +1106,7 @@ BEGIN
     RETURN ctrycode;
 END;
 $function$;
+
 
 
 -- ==== functions/_check_input_costmatrix.sql =========================================================================
@@ -1267,6 +1278,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_check_input_routes.sql =============================================================================
 
 CREATE OR REPLACE FUNCTION pgr._check_input_routes(
@@ -1326,6 +1338,7 @@ BEGIN
     RETURN ctrycode;
 END;
 $function$;
+
 
 
 -- ==== functions/_costmatrix_points.sql ==============================================================================
@@ -1398,6 +1411,7 @@ BEGIN
     RETURN QUERY SELECT * FROM tmp_costmatrix_points;
 END;
 $function$;
+
 
 
 -- ==== functions/_costmatrix_segment.sql =============================================================================
@@ -1789,6 +1803,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_create_dynamical_grids.sql =========================================================================
 
 CREATE OR REPLACE FUNCTION pgr._create_dynamical_grids(
@@ -1892,6 +1907,25 @@ BEGIN
 
 END;
 $function$;
+
+
+
+-- ==== functions/_data_formats.sql ===================================================================================
+
+CREATE OR REPLACE FUNCTION pgr._data_formats()
+    RETURNS INTEGER[]
+    LANGUAGE sql
+    IMMUTABLE
+    PARALLEL SAFE
+AS
+$function$
+    -- DESCRIPTION: Data formats of a delivery (loine_delivery.data_format) these functions can read.
+    --              The data format changes with the tables, columns or meaning of the delivered data; the Loine
+    --              version changes with the functions. Deliveries without data_format have format 1.
+    --              scripts/build_release.sh writes this list to the file DATA_FORMATS of the release.
+SELECT ARRAY[1]::INTEGER[];
+$function$;
+
 
 
 -- ==== functions/_driving_distance_isolines.sql ======================================================================
@@ -2126,6 +2160,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/_ending_segment.sql =================================================================================
@@ -2592,6 +2627,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_grids_isolines.sql =================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._grids_isolines(
@@ -2920,6 +2956,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_mode_category.sql ==================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._mode_category(
@@ -2960,6 +2997,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_net_level_cats.sql =================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._net_level_cats()
@@ -2976,6 +3014,7 @@ SELECT ARRAY(SELECT DISTINCT c
              WHERE c > 0
              ORDER BY c);
 $function$;
+
 
 
 -- ==== functions/_net_level_edges.sql ================================================================================
@@ -3068,6 +3107,7 @@ BEGIN
           AND g.street_cat = ANY (p_buffer_cats);
 END;
 $function$;
+
 
 
 -- ==== functions/_preselection_costmatrix.sql ========================================================================
@@ -3177,6 +3217,7 @@ BEGIN
              ) h;
 END;
 $function$;
+
 
 
 -- ==== functions/_preselection_isolines.sql ==========================================================================
@@ -3421,6 +3462,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_preselection_routes.sql ============================================================================
 
 CREATE OR REPLACE FUNCTION pgr._preselection_routes(
@@ -3661,6 +3703,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/_srid.sql ===========================================================================================
 
 CREATE OR REPLACE FUNCTION pgr._srid()
@@ -3677,17 +3720,19 @@ $function$
 DECLARE
     v_srid INTEGER;
 BEGIN
-    IF TO_REGCLASS('pgr.loine_installed') IS NOT NULL
-        AND EXISTS (SELECT 1
-                    FROM information_schema.columns
-                    WHERE table_schema = 'pgr'
-                      AND table_name = 'loine_installed'
-                      AND column_name = 'srid') THEN
+    -- The schema name appears only as pgr. so that the function also works in a delivery schema pgr_YYYYMMDD
+    -- (the installer and the switch procedure replace pgr. with the schema name).
+    IF EXISTS (SELECT 1
+               FROM pg_attribute
+               WHERE attrelid = TO_REGCLASS('pgr.loine_installed')
+                 AND attname = 'srid'
+                 AND NOT attisdropped) THEN
         EXECUTE 'SELECT MIN(srid) FROM pgr.loine_installed' INTO v_srid;
     END IF;
     RETURN COALESCE(v_srid, 3035);
 END;
 $function$;
+
 
 
 -- ==== functions/_starting_segment.sql ===============================================================================
@@ -4159,6 +4204,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/cgo_costmatrix.sql ==================================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_costmatrix(
@@ -4259,6 +4305,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/cgo_costmatrix_snap_report.sql ======================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_costmatrix_snap_report(
@@ -4354,6 +4401,7 @@ BEGIN
                                    ) cs ON cs.source = p.point_id AND cs.target = p.lot_id;
 END;
 $function$;
+
 
 
 -- ==== functions/cgo_grids.sql =======================================================================================
@@ -4454,6 +4502,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/cgo_isoline.sql =====================================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_isoline(
@@ -4542,6 +4591,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/cgo_isoline_static.sql ==============================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_isoline_static(
@@ -4628,6 +4678,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/cgo_multiisolines.sql ===============================================================================
@@ -4802,6 +4853,7 @@ END;
 $function$;
 
 
+
 -- ==== functions/cgo_path.sql ========================================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_path(
@@ -4930,6 +4982,7 @@ END
 $function$;
 
 
+
 -- ==== functions/cgo_segments.sql ====================================================================================
 
 CREATE OR REPLACE FUNCTION pgr.cgo_segments(
@@ -5028,6 +5081,7 @@ BEGIN
 
 END;
 $function$;
+
 
 
 -- ==== functions/loine_build_net_level.sql ===========================================================================
@@ -5144,6 +5198,7 @@ END;
 $procedure$;
 
 
+
 -- ==== functions/loine_info.sql ======================================================================================
 
 CREATE OR REPLACE FUNCTION pgr.loine_info(OUT version TEXT,
@@ -5158,8 +5213,8 @@ AS
 $function$
     -- DESCRIPTION: Version of the installed Loine software, website, contact and license.
     --              Version and release date are set with every release (same version as in the file VERSION).
-SELECT '3.0.0',
-       DATE '2026-11-02',
+SELECT '3.0.3',
+       DATE '2026-11-25',
        'https://www.casageo.de/loine.html',
        'info@casageo.de',
        'AGPL-3.0-only or commercial license (casaGeo Data + Services GmbH)';

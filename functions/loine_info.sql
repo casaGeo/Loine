@@ -10,8 +10,8 @@ AS
 $function$
     -- DESCRIPTION: Version of the installed Loine software, website, contact and license.
     --              Version and release date are set with every release (same version as in the file VERSION).
-SELECT '3.0.0',
-       DATE '2026-11-02',
+SELECT '3.0.3',
+       DATE '2026-11-25',
        'https://www.casageo.de/loine.html',
        'info@casageo.de',
        'AGPL-3.0-only or commercial license (casaGeo Data + Services GmbH)';
