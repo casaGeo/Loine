@@ -19,7 +19,7 @@ Loine delivers a ready-to-use road network for PostgreSQL/PostGIS together with 
 
 ## How it works
 
-Loine is delivered per country as a PostgreSQL dump. Each country contains:
+The country data is delivered by casaGeo as a complete delivery: one PostgreSQL dump with all ordered countries in its own schema `pgr_YYYYMMDD`. Each country contains:
 
 | Table | Content |
 |---|---|
@@ -40,34 +40,48 @@ Preparing the road networks is not part of the Loine software. casaGeo provides 
 
 ## Requirements
 
-- PostgreSQL 18 with PostGIS and pgRouting
+- PostgreSQL 18 with PostGIS and pgRouting (4.1.0 or later recommended; older versions work, but are much slower)
 - PostgreSQL client tools `psql` and `pg_restore`, version 18 or later
 
 ## Quick start
 
-Download the Loine software and the country data from the [Loine website](https://www.casageo.de/loine.html). The commands are the same on Windows, Linux and macOS.
+The software is in this repository. The country data is not part of it; it is delivered by casaGeo (see [Contact](#contact)). A new delivery is installed next to the running installation `pgr`, tested and then switched to `pgr`, so applications keep working during the installation. The commands below use the delivery `pgr_20261124` as an example.
 
-Install the software (once, and again after each update):
-
-```
-psql -h localhost -U postgres -d mydb -f loine-<version>.sql
-```
-
-Load a country:
+Prepare the database (once, and again with every new Loine version):
 
 ```
-pg_restore -h localhost -U postgres -d mydb --no-owner -j 4 loine_<country>.dump
+psql -h localhost -U postgres -d mydb -f install/loine_admin.sql
 ```
+
+Restore the delivery. This creates the schema `pgr_20261124` with data, indexes, statistics and the base network for routes:
+
+```
+pg_restore -h localhost -U postgres -d mydb --no-owner -j 4 loine_pgr_20261124_<network>_<countries>.dump
+```
+
+Install the functions into the schema of the delivery: `install/loine_functions.sql` with every `pgr.` replaced by `pgr_20261124.`, for example with Perl (Linux, macOS):
+
+```
+perl -pe 's/\bpgr\./pgr_20261124./g' install/loine_functions.sql | psql -h localhost -U postgres -d mydb
+```
+
+Check the delivery and switch it to `pgr`:
 
 ```sql
-CALL pgr.loine_install_country('<country>');
+SELECT * FROM loine_admin.check_installation('pgr_20261124');
+CALL loine_admin.switch_installation('pgr_20261124');                    -- previous installation is kept as pgr_<date>
+CALL loine_admin.switch_installation('pgr_20261124', p_old => 'drop');   -- or: previous installation is dropped
 ```
 
-After the last country, build indexes, statistics and the base network for routes:
+Other administration commands:
 
 ```sql
-CALL pgr.loine_finalize();
+SELECT * FROM loine_admin.installations();                 -- all installations in the database
+CALL loine_admin.switch_installation('pgr_20250510');      -- switch back to an earlier installation
+CALL loine_admin.drop_installation('pgr_20250510');        -- drop an inactive installation
 ```
+
+After switching, applications should reconnect to the database.
 
 Check the installed version:
 
@@ -75,9 +89,16 @@ Check the installed version:
 SELECT * FROM pgr.loine_info();
 ```
 
-The software can also be installed from this repository: run `install/loine_install.sql` and then `install/loine_functions.sql` instead of `loine-<version>.sql`. The country data is only available from the website.
+### Updating the software
 
-Step-by-step instructions for Windows, Linux and macOS, for pgAdmin and DataGrip, and for updates are available on the [Loine website](https://www.casageo.de/loine.html).
+A new Loine version without new country data only replaces the functions of the running installation:
+
+```
+psql -h localhost -U postgres -d mydb -f install/loine_admin.sql
+psql -h localhost -U postgres -d mydb -f install/loine_functions.sql
+```
+
+The release notes say if a new version needs new country data (file `DATA_FORMATS`).
 
 ## Usage
 
@@ -127,7 +148,7 @@ SELECT * FROM pgr.cgo_costmatrix('my_schema.my_locations', 'card', 'time');
 
 | Path | Content |
 |---|---|
-| `install/loine_install.sql` | Schema `pgr`, target tables and the procedures `loine_install_country` and `loine_finalize` |
+| `install/loine_install.sql` | Schema `pgr` with empty target tables and `loine_finalize`, for your own networks (see `docs/tables.md`); not needed for a delivery |
 | `install/loine_functions.sql` | All functions in one file, generated from `install/upgrade_drops.sql` and `functions/` |
 | `install/upgrade_drops.sql` | Removes functions whose signature changed compared to earlier versions |
 | `install/loine_admin.sql` | Schema `loine_admin`: switch between complete deliveries (schema `pgr_YYYYMMDD` → `pgr`) and drop old ones |
