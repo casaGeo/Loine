@@ -130,11 +130,13 @@ SELECT * FROM pgr.cgo_costmatrix('my_schema.my_locations', 'card', 'time');
 | `install/loine_install.sql` | Schema `pgr`, target tables and the procedures `loine_install_country` and `loine_finalize` |
 | `install/loine_functions.sql` | All functions in one file, generated from `install/upgrade_drops.sql` and `functions/` |
 | `install/upgrade_drops.sql` | Removes functions whose signature changed compared to earlier versions |
+| `install/loine_admin.sql` | Schema `loine_admin`: switch between complete deliveries (schema `pgr_YYYYMMDD` → `pgr`) and drop old ones |
 | `functions/` | One file per function or procedure |
 | `docs/tables.md` | Structure of the tables `pgr.edges` and `pgr.grids` and requirements for your own networks |
 | `VERSION` | Version of this release, also returned by `pgr.loine_info()` |
+| `DATA_FORMATS` | Data formats of the country data this release can read, also returned by `pgr._data_formats()` |
 
-All objects are created in the schema `pgr`. Names starting with `cgo_` are the query functions, names starting with `loine_` are administration routines you call directly, and names starting with `_` are internal helpers that are not meant to be called directly.
+All objects are created in the schema `pgr`, except the administration of complete deliveries in `loine_admin`. Names starting with `cgo_` are the query functions, names starting with `loine_` are administration routines you call directly, and names starting with `_` are internal helpers that are not meant to be called directly.
 
 ## Typical applications
 
